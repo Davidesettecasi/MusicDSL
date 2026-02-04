@@ -117,3 +117,29 @@ The initial environment is populated with several primitive operators:
 - **Math**: `+`, `-`, `*`, `/`, `%`.
 - **Logic**: `==`, `!=`, `<`, `>`, `and`, `or`, `not`.
 - **Music Analysis**: Native support for list processing (`head`, `tail`) and event inspection (`pitch`).
+
+---
+
+## 5. From Text to Structure: Parsing and the AST
+
+The journey of a MusicDSL program starts with a raw string of text and ends with a sophisticated **Abstract Syntax Tree (AST)**. This process is orchestrated by the `Lark` library, which first performs a syntactic analysis of the source code. During this initial phase, Lark generates an *Abstract Parse Tree*—a literal representation of the grammar rules. However, to make this data useful for our interpreter, we perform a second, more refined step: the **Transformation**.
+
+
+
+### 5.1 Building the Abstract Syntax Tree (AST)
+The AST is the "skeleton" of the program, stripped of any syntactic noise (like semicolons or parentheses used for grouping). Each node in this tree is a Python `dataclass` representing a specific semantic concept. We distinguish between two main categories of nodes:
+
+* **Expressions**: These are the building blocks that return musical or logical values. They range from simple atoms like `Number`, `Bool`, and `Note` (which stores pitch, accidental, and duration) to more complex operations like `Apply` (for arithmetic or musical operators) and `FunctionApp`.
+* **Commands**: These represent the active instructions of the language. Nodes like `Assign`, `VarDecl`, `While`, and `IfElse` do not return a value but instead modify the state of the program or control its execution flow. A specialized node, `CommandSequence`, acts as a recursive link that allows multiple commands to be executed in a specific order.
+
+### 5.2 The Transformation Process
+To convert the raw Lark parse tree into our typed AST, we use specialized transformer functions: `transform_expr_tree` and `transform_command_tree`. 
+
+The process utilizes **Structural Pattern Matching** (Python's `match-case`) to navigate the tree nodes. For instance, when the transformer encounters a node labeled as a `note`, it extracts the pitch and duration tokens to instantiate a `Note` object. If it finds a `bin` (binary) node, it recursively transforms the left and right children and wraps them in an `Apply` node with the corresponding operator.
+
+A key challenge in this phase is managing the sequence of execution. The `ensure_command_seq` utility ensures that every instruction—whether it's a single `print` or a complex `while` loop—is correctly wrapped into a `CommandSequence`. This recursive structure allows the interpreter to "consume" the program instruction by instruction, maintaining a clear path through the logic of the composition.
+
+
+
+### 5.3 Procedural and Functional Abstractions
+The AST also handles the complexity of declarations. When a function or procedure is defined via `FunctionDecl` or `ProcedureDecl`, the transformer captures the parameter names and the body (which could be an expression for functions or a sequence of commands for procedures). These nodes are later used by the evaluator to create **Closures**, which pair the code with the environment in which it was defined, ensuring that variables are correctly resolved during execution.
