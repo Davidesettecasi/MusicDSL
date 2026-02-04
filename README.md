@@ -175,3 +175,35 @@ A closure is more than just a block of code; it is a "snapshot" that captures th
 
 ### 6.4 Running the Program
 The entire process is wrapped in the `execute_program` function. It acts as the orchestrator that takes the raw text, calls the **Parser** to build the command sequence, initializes the **Global Environment** with all built-in musical and mathematical operators, and finally kicks off the recursive chain of execution that results in the final musical output.
+
+---
+
+## 7. Visualization and Audio Playback
+
+The final stage of the **MusicDSL** pipeline is the transformation of the logical `MusicResult` into an interactive, high-fidelity web interface. This is achieved by generating a standalone HTML5 file that combines dynamic SVG graphics with a professional-grade audio engine.
+
+### 7.1 The "GarageBand Style" Piano Roll
+The visualizer processes the list of musical events to create a classic **Piano Roll** interface. 
+* **Dynamic Grid**: The system calculates the total duration of the piece and the pitch range (from the lowest to the highest note) to generate a proportional SVG grid. 
+* **Musical Keyboard**: A responsive CSS-based keyboard is rendered on the left side, featuring a realistic layout of white and black keys. 
+* **Note Rendering**: Each note is drawn as a green rounded rectangle (reminiscent of professional DAWs like GarageBand). The horizontal position and width are strictly determined by the `start_time` and `duration` calculated during the evaluation phase.
+
+
+
+### 7.2 High-Fidelity Audio Synthesis
+For sound reproduction, the project integrates the **Tone.js** library and uses **Sample-based Synthesis**:
+* **Salamander Piano Samples**: Instead of using simple oscillators, the player downloads real high-quality piano samples for various pitches and octaves. This provides a realistic and pleasant listening experience.
+* **Scheduling**: The Python interpreter exports the musical data as a JSON object. The JavaScript engine then schedules each note precisely in the future using the `piano.triggerAttackRelease` method, taking into account a `bpm_factor` to control the playback speed.
+* **Audio Effects**: To add depth to the sound, a **Convolution Reverb** effect is applied to the master output, simulating the acoustics of a real concert hall.
+
+### 7.3 Interaction and Web Integration
+The visualization is triggered by the `print` command within the DSL. When the interpreter detects a musical sequence, it automatically:
+1.  Generates a local `.html` file containing the SVG and the player logic.
+2.  Opens the user's default web browser.
+3.  Initializes the audio sampler, allowing the user to play the composition with a single click once the samples are loaded.
+
+
+
+---
+
+
