@@ -38,52 +38,105 @@ The final output of the evaluation process is the `MusicResult`, which is struct
 ---
 
 ## 3. Syntax and Language Structure
-Every instruction in **MusicDSL** is an expression that produces a `MusicResult`.
 
-### 3.1 Musical Primitives (Atoms)
-- **Notes**: Defined by the triad `Note-Accidental-Octave` followed by duration.
-  - *Syntax*: `[PITCH][ACCIDENTAL][OCTAVE]/[DUR]` (e.g., `Cn4/1`)
-- **Rests**: Represented by the symbol `R` followed by duration.
-  - *Syntax*: `R/[DUR]` (e.g., `R/0.5`)
+In **MusicDSL**, every instruction is designed to be an expression that contributes to a `MusicResult`. The syntax balances musical readability with the rigorous requirements of a programming language, allowing for both simple compositions and complex algorithmic structures.
 
-### 3.2 Temporal and Algebraic Operators
-- `++` (**Concatenation**): Joins two sequences in chronological order.
-- `|` (**Union**): Overlaps two sequences simultaneously.
-- `!` (**Transposition**): Raises or lowers the pitch of a sequence.
+### 3.1 Musical Primitives and Temporal Logic
+The basic units of composition are **Notes** and **Rests**. A note is defined by its pitch, accidental, and octave (e.g., `Cn4` for Middle C natural), optionally followed by its duration (e.g., `Cn4/1`). Rests follow a similar pattern, using the `R` symbol (e.g., `R/0.5`).
 
-### 3.3 Unary Operations and Sequence Manipulation
-- `head(list)`: Returns the first `MusicEvent` of a sequence.
-- `tail(list)`: Returns the sequence excluding the first element.
-- `is_empty(list)`: Returns `true` if the sequence contains no events.
-- `pitch(event)`: Extracts the MIDI value of the first note in an event.
-- `initialize(event)`: Resets the `start_time` of an event to `0.0`.
 
-### 3.4 Arithmetic and Boolean Constructs
-The language supports standard types like **integers** and **booleans**.
-- **Arithmetic**: `+`, `-`, `*`, `/`, `%` are used to manipulate pitches or durations.
-- **Logic**: Comparison operators (`==`, `!=`, `<`, `>`, etc.) and boolean operators (`and`, `or`, `not`) handle conditions for `while` loops and `if` constructs.
 
-### 3.5 Variable Management and Scoping
-- **A. `let` Expressions (Static Scoping)**: Used for local variables that exist only within the defined block.
-  - *Syntax*: `let var_name = expression in block_expression`
-- **B. Declaration and Assignment (Commands)**: Global variables that persist in the environment.
-  - *Declaration*: `var melodia = Cn4/1;`
-  - *Assignment*: `melodia = melodia ++ En4/1;`
+To combine these atoms into melodies and harmonies, the language provides three fundamental operators that manipulate the timeline:
+* **Concatenation (`++`)**: Sequences two musical events chronologically, calculating the correct offset based on the duration of the first.
+* **Union (`|`)**: Overlaps two sequences simultaneously, enabling native polyphony and chord construction.
+* **Transposition (`!`)**: Dynamically shifts the pitch of an entire sequence by a given interval.
 
-### 3.6 Commands and Execution Flow
-- `var`: Introduces a new identifier.
-- `assignment`: Updates an existing variable.
-- `print`: Displays the result in the Python console (essential for debugging).
-- `if-then-else`: Conditional execution based on a boolean value.
-- `while`: Repeatedly executes a block of commands as long as the condition is `true`.
-- `;` (**Sequencing**): Used to group and execute multiple commands in order.
+### 3.2 Computational Core: Data and Manipulation
+Beyond music, the language supports **Integers** and **Booleans**, enabling the calculation of musical parameters through standard arithmetic (`+`, `-`, `*`, `/`, `%`) and logical comparisons (`==`, `<`, `and`, `not`). 
 
-### 3.7 Functions and Procedures
-The language distinguishes between functional and imperative paradigms:
-- **Functions**: Bodies contain only **expressions**. They return values without side effects.
-  - *Keywords*: `fundecl` (declaration) and `funapp` (application).
-- **Procedures**: Bodies contain **commands**. They can modify the global state or perform iterations.
-  - *Keywords*: `procdecl` (declaration) and `procapp` (application).
+To manipulate musical sequences as data structures, MusicDSL offers powerful unary operations inspired by functional programming:
+* `head` and `tail`: Used for recursive list processing, allowing the user to peel off the first event of a melody.
+* `is_empty`: A boolean check essential for managing loop termination.
+* `pitch` : Inspects the frequency of a `MusicEvent`.
+* `initialize`: Resets the `start_time` of a `MusicEvent` to the origin (0.0).
+
+### 3.3 State and Scoping
+The language supports two distinct ways to manage data and names:
+1. **Functional Scoping (`let`)**: Defines local, immutable variables with static scoping, ideal for temporary calculations within an expression.
+2. **Imperative State (`var` and `<-`)**: Manages global, mutable variables that persist across the execution flow.
+
+### 3.4 Commands, Functions and Procedures
+Execution is controlled via **Command Sequences** separated by semicolons (`;`). These can be nested within `if-then-else` branches or `while` loops for generative music. Finally, MusicDSL distinguishes between **Functions** (`fundecl`), which are pure and side-effect-free, and **Procedures** (`procdecl`), which can execute commands and modify the global state.
+
+---
+
+### 3.5 Formal Grammar (EBNF)
+The following is the formal definition of the language used by the **Lark** parser. It defines the hierarchy of commands, operator precedence, and the structure of musical tokens.
+
+
+
+```lark
+# The entry point is a program (sequence of commands)
+?start: command_seq
+
+?command_seq: command
+           | command ";" command_seq
+
+?command: vardecl
+        | assign
+        | print
+        | ifelse 
+        | while    
+        | fundecl 
+        | procdecl
+
+# State Commands
+vardecl: "var" IDENTIFIER "=" expr
+assign: IDENTIFIER "<-" expr
+print: "print" expr
+
+# Control Structures
+while: "while" expr "do" "{" command_seq "}"
+ifelse: "if" expr "then" "{" command_seq "}" "else" "{" command_seq "}"
+
+# Functions and Procedures
+fundecl: "function" IDENTIFIER "(" [param_list] ")" "=" expr
+param_list: IDENTIFIER ("," IDENTIFIER)*
+procdecl: "procedure" IDENTIFIER "(" [param_list] ")" "=" "{" command_seq "return" expr "}"
+
+# Expressions
+?ground: note | rest | NUMBER | BOOL
+?expr: bin | mono | let | funapp | procapp
+?bin: expr OP mono
+?mono: ground | paren | var | unary
+
+unary: UNOP mono
+paren: "(" expr ")"
+var: IDENTIFIER
+let: "let" IDENTIFIER "=" expr "in" expr
+funapp: IDENTIFIER "(" [arg_list] ")"
+procapp: IDENTIFIER "(" [arg_list] ")"
+arg_list: expr ("," expr)*
+
+# Musical Definitions
+note: PITCH ACCIDENTAL OCTAVE ["/" DUR]
+rest: REST_SYMBOL ["/" DUR]
+
+# Terminals
+PITCH.2: "C" | "D" | "E" | "F" | "G" | "A" | "B"
+ACCIDENTAL.2: "bb" | "b" | "n" | "d" | "dd"
+OCTAVE.2: /[0-9]/
+DUR.2: /[0-9]+(\.[0-9]+)?/
+REST_SYMBOL: "R"
+NUMBER: /[0-9]+/
+BOOL: "true" | "false"
+UNOP: "not" | "head" | "tail" | "is_empty" | "pitch" | "initialize"
+OP: "+" | "-" | "*" | "/" | "%" | "==" | "<" | ">" | "and" | "or" | "++" | "|" | "!"
+IDENTIFIER: /[a-z][a-zA-Z0-9_]*/
+
+%import common.WS
+%ignore WS
+```
  
 ---
 
