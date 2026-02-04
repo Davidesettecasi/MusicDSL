@@ -21,20 +21,19 @@ The execution of a program written in **MusicDSL** follows a three-stage process
 ---
 
 ## 2. Semantic Domain
-The language translates source code expressions into a structured data model defined by three main entities:
 
-### 2.1 NoteValue (The Sonic Atom)
-The `NoteValue` is the minimum unit of sound information.
-- `midi_pitch (int)`: The note frequency in MIDI standard (e.g., 60 for Middle C). Rests are conventionally modeled with a value of `-1`.
-- `duration (float)`: The relative duration of the note (e.g., 1.0 for a whole note, 0.25 for a quarter note).
+To represent music programmatically, the language maps source code expressions into a structured data model. This semantic domain is built upon three core entities, designed to handle both the hierarchical and temporal nature of sound.
 
-### 2.2 MusicEvent (The Temporal Container)
-The `MusicEvent` represents a specific "trigger point" on the timeline.
-- `start_time (float)`: The exact moment the event begins relative to the start of the composition.
-- `notes (set[NoteValue])`: A set of notes starting simultaneously. Using a `set` allows for native **polyphony** (chords).
+### 2.1 The NoteValue: The Sonic Atom
+At the most granular level, the `NoteValue` represents the fundamental unit of sound information. It encapsulates the **midi_pitch** (an integer following the MIDI standard, where Middle C is 60 and rests are conventionally flagged as -1) and the **duration** (a float representing the relative length of the note). By isolating these properties, the language treats the note as an abstract physical entity, independent of its position in time.
 
-### 2.3 MusicResult (The Time Series)
-The `MusicResult` (defined as `list[MusicEvent]`) is the final output representing the entire composition.
+### 2.2 The MusicEvent: A Temporal Container
+The `MusicEvent` serves as a "trigger point" on the musical timeline, bridging the gap between abstract notes and actual performance. It is defined by a **start_time**—the precise offset from the beginning of the composition—and a **set of NoteValues**. This design choice is pivotal: by using a set, the language provides native support for **polyphony**. Multiple notes starting at the same instant automatically form a chord, drastically simplifying the management of vertical harmonic structures.
+
+
+
+### 2.3 The MusicResult: The Time Series
+The final output of the evaluation process is the `MusicResult`, which is structurally defined as a **list of MusicEvents**. This ordered sequence represents the entire composition as a time series, ready to be serialized and rendered by the playback engine.
 
 ---
 
