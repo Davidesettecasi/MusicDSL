@@ -236,3 +236,35 @@ The final example is a masterpiece of **Algorithmic Music Theory**, consisting o
 
 This example highlights the power of **MusicDSL** as a tool for analysis: functions can "inspect" a melody (via `head`, `tail`, and `pitch`), apply logic to it, and generate entirely new musical material based on theoretical constraints.
 
+---
+## 9. How to Run
+
+To execute a **MusicDSL** script and experience the algorithmic compositions, follow these steps:
+
+### 9.1 Prerequisites
+Ensure you have **Python 3.10+** installed on your system. You will also need the `lark` library for parsing.
+
+1. **Install Lark**:
+   ```bash
+   pip install lark
+
+### 9.2 Web Browser
+A modern web browser (Chrome, Firefox, or Safari) is required for the interactive visualization and audio playback.
+
+### 9.3 Running Examples
+Navigate to the project root directory and run the main interpreter script. You can point the interpreter to one of the provided examples:
+  ```bash
+  python main.py examples/03_diatonic_canon.mdsl
+
+### 9.4 Using the Interactive Player
+Once the execution is complete:
+
+* **Auto-Open**: Your default browser will automatically open the generated `piano_roll_pro.html` file.
+* **Wait for Samples**: Look at the status bar in the browser. It will say **"PIANO READY"** once the high-quality samples are downloaded from the Tone.js cloud.
+* **Playback**: Click the **▶ PLAY** button to start the audio engine and visualize the green "GarageBand-style" notes on the grid.
+
+---
+
+## License
+This project is licensed under the **MIT License** - see the `LICENSE` file for details.
+
