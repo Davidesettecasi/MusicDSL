@@ -143,3 +143,35 @@ A key challenge in this phase is managing the sequence of execution. The `ensure
 
 ### 5.3 Procedural and Functional Abstractions
 The AST also handles the complexity of declarations. When a function or procedure is defined via `FunctionDecl` or `ProcedureDecl`, the transformer captures the parameter names and the body (which could be an expression for functions or a sequence of commands for procedures). These nodes are later used by the evaluator to create **Closures**, which pair the code with the environment in which it was defined, ensuring that variables are correctly resolved during execution.
+
+---
+
+## 6. Evaluation and Execution
+
+Once the source code has been transformed into an Abstract Syntax Tree (AST), the interpreter begins the process of giving semantic meaning to the nodes. This is achieved through two main mechanisms: **Expression Evaluation**, which calculates values (like notes or numbers), and **Command Execution**, which manages the program's logic and memory state.
+
+### 7.1 Evaluating Expressions
+The `evaluate_expr` function is a recursive engine that traverses the tree to produce a value (an `EVal`). When the interpreter encounters a `Note` node, it converts musical notation into a MIDI pitch and returns a `MusicEvent`—the fundamental unit of our musical time series. Similarly, a `Rest` is evaluated as a "silent note" with a conventional pitch of `-1`, ensuring that pauses occupy the correct space in the timeline.
+
+A critical feature of our evaluator is **Dynamic Type Checking**. When an operator (like `++` for concatenation or `*` for multiplication) is applied via the `Apply` node, the interpreter doesn't just execute the function; it first verifies that the arguments match the expected types defined in the `Operator` structure. This ensures, for example, that a user cannot accidentally "multiply" a melody by a boolean, providing clear error messages when the logic fails.
+
+
+
+The evaluator also handles the complexity of **Scoping**. For variables, it performs a `lookup` in the environment; if the identifier points to a memory location (`Loc`), it seamlessly reaches into the **State** to retrieve the current value. In the case of `Let` expressions, it creates a temporary, extended environment to support static scoping, ensuring that local variables do not "leak" into the global space.
+
+### 6.2 Executing Commands and Managing State
+While expressions calculate values, **Commands** are responsible for changing the world. The `execute_command` function manages the life cycle of variables and the flow of the program.
+
+* **Variables and Assignment**: When a `VarDecl` is executed, the interpreter allocates a new spot in the memory store and binds the name to that location. The `Assign` command allows these values to be updated over time, enabling the incremental construction of complex musical pieces.
+* **Control Flow**: The logic for `IfElse` and `While` constructs demonstrates how the interpreter handles conditional execution. In a `While` loop, the interpreter uses a recursive function to repeatedly evaluate the condition and execute the body. A key technical detail is the **local memory management**: after each iteration, the interpreter resets the memory allocation counter (`next_loc`) to prevent the store from bloating with temporary variables created inside the loop.
+* **The Print Command**: This command serves as the bridge between the digital logic and the user. If the expression being printed is a musical sequence, the interpreter automatically triggers the `visualize_garageband_piano_roll` function, transforming the internal list of events into an interactive graphical interface.
+
+
+
+### 6.3 Closures: Preserving Context
+One of the most sophisticated aspects of the execution engine is the management of **Functions and Procedures**. When a `FunctionDecl` or `ProcedureDecl` is executed, the interpreter creates a **Closure**. 
+
+A closure is more than just a block of code; it is a "snapshot" that captures the environment existing at the moment of declaration. This means that when a function is called later (via `funapp`), it remembers the variables that were visible when it was born, regardless of where it is being called from. The distinction between the two is strictly maintained: **Functions** evaluate their body as a pure expression, while **Procedures** execute a sequence of commands and return a final result, allowing for complex, state-altering musical algorithms.
+
+### 6.4 Running the Program
+The entire process is wrapped in the `execute_program` function. It acts as the orchestrator that takes the raw text, calls the **Parser** to build the command sequence, initializes the **Global Environment** with all built-in musical and mathematical operators, and finally kicks off the recursive chain of execution that results in the final musical output.
