@@ -293,7 +293,7 @@ Ensure you have **Python 3.10+** installed on your system. You will also need th
    pip install lark
    ```
    
-2. **Web Browser**
+2. **Web Browser**:
 A modern web browser (Chrome, Firefox, or Safari) is required for the interactive visualization and audio playback.
 
 ### 9.2 Running Examples
