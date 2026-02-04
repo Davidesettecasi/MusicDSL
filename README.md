@@ -252,9 +252,7 @@ Ensure you have **Python 3.10+** installed on your system. You will also need th
 A modern web browser (Chrome, Firefox, or Safari) is required for the interactive visualization and audio playback.
 
 ### 9.3 Running Examples
-Navigate to the project root directory and run the main interpreter script. You can point the interpreter to one of the provided examples:
-  ```bash
-  python main.py examples/03_diatonic_canon.mdsl
+Navigate to the project root directory and run the main interpreter script. You can point the interpreter to one of the provided examples.
 
 ### 9.4 Using the Interactive Player
 Once the execution is complete:
