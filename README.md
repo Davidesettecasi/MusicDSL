@@ -160,7 +160,6 @@ To maintain data integrity, the interpreter enforces a rigorous type system. Val
 * **MVal (Storable)**: Anything that can be saved within the State's memory.
 * **DVal (Denotable)**: The broadest category, including memory locations, functional closures, and built-in operators.
 
-This architecture allows the language to seamlessly integrate native operators. From basic math (`+`, `%`) and logic (`and`, `not`) to sophisticated music analysis tools, every primitive is treated as a first-class citizen within the initial environment, ready to be called or passed as an argument.
 
 ---
 
