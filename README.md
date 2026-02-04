@@ -4,10 +4,10 @@
 ## 1. Introduction
 **MusicDSL** is a domain-specific programming language designed to model, manipulate, and generate musical structures through symbolic logic. The project aims to provide a programmatic abstraction of music theory, treating composition not just as a creative process, but as a series of algebraic transformations on temporal sequences.
 
-### 1.1 Project Goals
-- **Musical Abstraction**: Providing an intuitive syntax for defining notes, durations, and accidentals.
-- **Temporal Manipulation**: Implementing an engine capable of correctly managing the concatenation and overlapping of events, ensuring timing integrity even in the presence of rests (silences).
-- **Algorithmic Flexibility**: Supporting procedures and variables to enable generative composition (e.g., automatic scale calculation or accompaniment generation).
+### 1.1 Core Philosophy and Goals
+The primary objective of MusicDSL is to bridge the gap between formal logic and artistic expression. By providing an intuitive syntax for notes, durations, and accidentals, the language allows for deep **musical abstraction**. 
+
+At its core, the system features a robust temporal engine designed to manage the complexities of time. It ensures perfect timing integrity by correctly handling the concatenation and overlapping of events, while treating silence (rests) as first-class citizens within the musical timeline. Furthermore, the integration of variables and procedural logic introduces **algorithmic flexibility**, empowering users to create generative compositions—such as automated scale generation or dynamic accompaniments—that would be difficult to achieve in traditional notation software.
 
 ### 1.2 Execution Pipeline: From Text to Music
 The execution of a program written in **MusicDSL** follows a three-stage process managed entirely within a Python environment:
