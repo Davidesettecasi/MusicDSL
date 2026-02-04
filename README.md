@@ -205,5 +205,34 @@ The visualization is triggered by the `print` command within the DSL. When the i
 
 
 ---
+## 8. Practical Examples and Algorithmic Composition
 
+To demonstrate the expressiveness and computational power of **MusicDSL**, the repository includes three examples that progress from basic musical structures to advanced algorithmic transformations.
+
+### 8.1 Basic: Dynamic Scale Generation
+The first example showcases how procedures can be used to automate repetitive musical tasks. Instead of manually writing every note, we defined a procedure that:
+* Takes a **starting pitch** as input.
+* Iteratively calculates the intervals of a **Major Scale**.
+* Uses a `while` loop to concatenate the notes into a single `MusicResult`.
+This illustrates the leap from a simple sequencer to a programmable musical environment.
+
+### 8.2 Intermediate: Jazz Harmony and Chord Voicings
+The second example focuses on **vertical structures (polyphony)** and compositional logic. We re-imagined the traditional melody of *Brother John* (Fra Martino) through a sophisticated Jazz arrangement:
+* **Chord Construction**: Accords are built using the `|` (**Union**) operator to stack multiple `Note` values simultaneously at the same `start_time`.
+* **Harmonic Progression**: These individual chords are then linked together using the `++` (**Concatenation**) operator to create a fluid harmonic accompaniment.
+* **Layering**: The final result is obtained by merging the lead melody with the jazz harmony, demonstrating how the language handles high-density musical information without losing timing integrity.
+
+
+
+### 8.3 Advanced: The Diatonic Canon and Functional Analysis
+The final example is a masterpiece of **Algorithmic Music Theory**, consisting of a 4-voice canon built through functional transformations of a primary subject:
+
+1.  **Voice 1 (The Subject)**: A simple original melody in C Major.
+2.  **Voice 2 (Diatonic Transposition)**: This voice is transposed by a third, but not through a simple pitch shift. We implemented a function `is_in_scale` to verify that every new note belongs to the C Major scale. The `trasponi_melodia_diatonica` function uses this logic to ensure the transposition remains "musically correct" according to the rules of Western harmony.
+3.  **Voice 3 (Retrograde Transformation)**: Created using a `reverse_melody` function, which processes the `MusicResult` list to play the subject backward, a classic technique in counterpoint.
+4.  **Voice 4 (The Bass)**: A supportive line that highlights the tonics of the C and G chords, providing a solid harmonic foundation for the other three moving voices.
+
+
+
+This example highlights the power of **MusicDSL** as a tool for analysis: functions can "inspect" a melody (via `head`, `tail`, and `pitch`), apply logic to it, and generate entirely new musical material based on theoretical constraints.
 
