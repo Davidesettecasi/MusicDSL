@@ -36,7 +36,7 @@ The `MusicEvent` represents a specific "trigger point" on the timeline.
 ### 2.3 MusicResult (The Time Series)
 The `MusicResult` (defined as `list[MusicEvent]`) is the final output representing the entire composition.
 
-
+---
 
 ## 3. Syntax and Language Structure
 Every instruction in **MusicDSL** is an expression that produces a `MusicResult`.
@@ -86,7 +86,7 @@ The language distinguishes between functional and imperative paradigms:
 - **Procedures**: Bodies contain **commands**. They can modify the global state or perform iterations.
   - *Keywords*: `procdecl` (declaration) and `procapp` (application).
  
-
+---
 
 ## 4. Memory Management: Environment and State
 
@@ -118,7 +118,7 @@ The initial environment is populated with several primitive operators:
 - **Logic**: `==`, `!=`, `<`, `>`, `and`, `or`, `not`.
 - **Music Analysis**: Native support for list processing (`head`, `tail`) and event inspection (`pitch`).
 
-
+---
 
 ## 5. From Text to Structure: Parsing and the AST
 
@@ -144,7 +144,7 @@ A key challenge in this phase is managing the sequence of execution. The `ensure
 ### 5.3 Procedural and Functional Abstractions
 The AST also handles the complexity of declarations. When a function or procedure is defined via `FunctionDecl` or `ProcedureDecl`, the transformer captures the parameter names and the body (which could be an expression for functions or a sequence of commands for procedures). These nodes are later used by the evaluator to create **Closures**, which pair the code with the environment in which it was defined, ensuring that variables are correctly resolved during execution.
 
-
+---
 
 ## 6. Evaluation and Execution
 
@@ -176,7 +176,7 @@ A closure is more than just a block of code; it is a "snapshot" that captures th
 ### 6.4 Running the Program
 The entire process is wrapped in the `execute_program` function. It acts as the orchestrator that takes the raw text, calls the **Parser** to build the command sequence, initializes the **Global Environment** with all built-in musical and mathematical operators, and finally kicks off the recursive chain of execution that results in the final musical output.
 
-
+---
 
 ## 7. Visualization and Audio Playback
 
@@ -202,7 +202,7 @@ The visualization is triggered by the `print` command within the DSL. When the i
 2.  Opens the user's default web browser.
 3.  Initializes the audio sampler, allowing the user to play the composition with a single click once the samples are loaded.
 
-
+---
 
 
 ## 8. Practical Examples and Algorithmic Composition
@@ -236,6 +236,7 @@ The final example is a masterpiece of **Algorithmic Music Theory**, consisting o
 
 This example highlights the power of **MusicDSL** as a tool for analysis: functions can "inspect" a melody (via `head`, `tail`, and `pitch`), apply logic to it, and generate entirely new musical material based on theoretical constraints.
 
+---
 
 ## 9. How to Run
 
