@@ -85,3 +85,35 @@ The language distinguishes between functional and imperative paradigms:
   - *Keywords*: `fundecl` (declaration) and `funapp` (application).
 - **Procedures**: Bodies contain **commands**. They can modify the global state or perform iterations.
   - *Keywords*: `procdecl` (declaration) and `procapp` (application).
+ 
+---
+
+## 4. Memory Management: Environment and State
+
+The interpreter manages data through a decoupled architecture consisting of an **Environment** and a **State (Store)**. This design, inspired by formal operational semantics, allows for robust management of variables, memory locations, and scoping.
+
+### 4.1 Environment as a Function
+In MusicDSL, the **Environment** is implemented as a **higher-order function**.
+- **Definition**: An `Environment` is a `Callable[[str], DVal]` that maps an identifier (string) to a value.
+- **Binding**: When a new variable is defined using `bind`, the interpreter returns a new function. This function checks if the requested name matches the new binding; if not, it recursively searches the previous environment (`lookup`).
+- **Initial Environment**: The interpreter starts with a **Global Environment** pre-loaded with primitive operators (arithmetic, logic, and musical).
+
+### 4.2 State and the Store-passing Style
+The **State** manages the program's memory, storing values in specific locations (`Loc`) to allow for mutable variables.
+- **Store**: Implemented as a function `Callable[[int], MVal]`. Updating the store returns a new function representing the updated memory state.
+- **Allocation**: The `allocate` function assigns a unique address to new values and increments the `next_loc` counter.
+- **Access and Update**: `access` retrieves values from an address, while `update` modifies existing memory locations.
+
+
+
+### 4.3 Type System
+The interpreter uses a rigorous type hierarchy:
+- `EVal`: Expressible Values (Integers, Booleans, and `MusicResult` lists).
+- `MVal`: Storable Values (values that can be saved in the `Store`).
+- `DVal`: Denotable Values (Values, Operators, Memory Locations, or Closures).
+
+### 4.5 Built-in Operators
+The initial environment is populated with several primitive operators:
+- **Math**: `+`, `-`, `*`, `/`, `%`.
+- **Logic**: `==`, `!=`, `<`, `>`, `and`, `or`, `not`.
+- **Music Analysis**: Native support for list processing (`head`, `tail`) and event inspection (`pitch`).
