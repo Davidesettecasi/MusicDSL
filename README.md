@@ -142,33 +142,25 @@ IDENTIFIER: /[a-z][a-zA-Z0-9_]*/
 
 ## 4. Memory Management: Environment and State
 
-The interpreter manages data through a decoupled architecture consisting of an **Environment** and a **State (Store)**. This design, inspired by formal operational semantics, allows for robust management of variables, memory locations, and scoping.
+The MusicDSL interpreter manages data through a decoupled architecture that separates identifiers from their actual values. Inspired by formal operational semantics, this design distinguishes between the **Environment** (naming) and the **State** (memory storage), ensuring robust scoping and clean variable management.
 
-### 4.1 Environment as a Function
-In MusicDSL, the **Environment** is implemented as a **higher-order function**.
-- **Definition**: An `Environment` is a `Callable[[str], DVal]` that maps an identifier (string) to a value.
-- **Binding**: When a new variable is defined using `bind`, the interpreter returns a new function. This function checks if the requested name matches the new binding; if not, it recursively searches the previous environment (`lookup`).
-- **Initial Environment**: The interpreter starts with a **Global Environment** pre-loaded with primitive operators (arithmetic, logic, and musical).
+### 4.1 Functional Environment and Scoping
+In MusicDSL, the environment is not a simple static map, but a **higher-order function** (`Callable[[str], DVal]`). This functional approach means that every time a variable is bound, the interpreter generates a new function that encapsulates the new name-value pair. If a requested identifier isn't found in the current layer, the system recursively searches through previous layers. The execution begins with a **Global Environment**, pre-loaded with essential operators for arithmetic, logic, and musical analysis (such as `head`, `tail`, and `pitch`).
 
-### 4.2 State and the Store-passing Style
-The **State** manages the program's memory, storing values in specific locations (`Loc`) to allow for mutable variables.
-- **Store**: Implemented as a function `Callable[[int], MVal]`. Updating the store returns a new function representing the updated memory state.
-- **Allocation**: The `allocate` function assigns a unique address to new values and increments the `next_loc` counter.
-- **Access and Update**: `access` retrieves values from an address, while `update` modifies existing memory locations.
+### 4.2 The State and Store-passing Style
+While the environment handles names, the **State** (or Store) manages the program's physical memory. By mapping unique locations (`Loc`) to values through a `Store` function, the language enables mutable variables and persistent data. 
+* **Allocation**: The `allocate` function grants a unique memory address to every new value, incrementing an internal counter to prevent collisions.
+* **Access and Update**: The system provides dedicated primitives to retrieve values from an address (`access`) or modify them (`update`) without altering the overall structure of the environment.
 
 
 
-### 4.3 Type System
-The interpreter uses a rigorous type hierarchy:
-- `EVal`: Expressible Values (Integers, Booleans, and `MusicResult` lists).
-- `MVal`: Storable Values (values that can be saved in the `Store`).
-- `DVal`: Denotable Values (Values, Operators, Memory Locations, or Closures).
+### 4.3 Type Hierarchy and Built-in Operators
+To maintain data integrity, the interpreter enforces a rigorous type system. Values are categorized based on their role:
+* **EVal (Expressible)**: Values that can be the result of an expression (Integers, Booleans, or Musical sequences).
+* **MVal (Storable)**: Anything that can be saved within the State's memory.
+* **DVal (Denotable)**: The broadest category, including memory locations, functional closures, and built-in operators.
 
-### 4.5 Built-in Operators
-The initial environment is populated with several primitive operators:
-- **Math**: `+`, `-`, `*`, `/`, `%`.
-- **Logic**: `==`, `!=`, `<`, `>`, `and`, `or`, `not`.
-- **Music Analysis**: Native support for list processing (`head`, `tail`) and event inspection (`pitch`).
+This architecture allows the language to seamlessly integrate native operators. From basic math (`+`, `%`) and logic (`and`, `not`) to sophisticated music analysis tools, every primitive is treated as a first-class citizen within the initial environment, ready to be called or passed as an argument.
 
 ---
 
