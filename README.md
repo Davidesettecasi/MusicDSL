@@ -291,14 +291,15 @@ Ensure you have **Python 3.10+** installed on your system. You will also need th
 1. **Install Lark**:
    ```bash
    pip install lark
-
-### 9.2 Web Browser
+   ```
+   
+2. **Web Browser**
 A modern web browser (Chrome, Firefox, or Safari) is required for the interactive visualization and audio playback.
 
-### 9.3 Running Examples
+### 9.2 Running Examples
 Navigate to the project root directory and run the main interpreter script. You can point the interpreter to one of the provided examples.
 
-### 9.4 Using the Interactive Player
+### 9.3 Using the Interactive Player
 Once the execution is complete:
 
 * **Auto-Open**: Your default browser will automatically open the generated `piano_roll_pro.html` file.
