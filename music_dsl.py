@@ -19,6 +19,7 @@ class MusicEvent:
 # Il risultato finale della valutazione di un programma musicale è una lista di eventi ordinati nel tempo
 type MusicResult = list[MusicEvent]
 
+# Funzioni per operazioni musicali
 def note_to_midi(pitch: str, accidental: str, octave: int) -> int:
     # 1. Mappatura delle note base nell'ottava 0
     pitch_map = {
@@ -61,14 +62,12 @@ def concat_music(left: MusicResult, right: MusicResult) -> MusicResult:
 
 def harmony_music(left: MusicResult, right: MusicResult) -> MusicResult:
     # Uniamo semplicemente le liste. 
-    # Un vero motore musicale poi ordinerebbe per tempo, 
-    # ma per ora tenerle insieme in una lista è corretto semanticamente.
     return sorted(left + right, key=lambda x: x.start_time)
 
 
-#GRAMMATICA
+# --- GRAMMATICA ---
 grammar = r"""
-    # Il punto di ingresso ora è un programma (sequenza di comandi)
+    # Il punto di ingresso è un programma (sequenza di comandi)
     ?start: command_seq
 
     ?command_seq: command
@@ -82,12 +81,12 @@ grammar = r"""
             | fundecl 
             | procdecl
 
-    # Nuovi Comandi di Stato
+    # Comandi di Stato
     vardecl: "var" IDENTIFIER "=" expr
     assign: IDENTIFIER "<-" expr
     print: "print" expr
 
-    # Strutture di controllo come comandi
+    # Strutture di controllo
     while: "while" expr "do" "{" command_seq "}"
     ifelse: "if" expr "then" "{" command_seq "}" "else" "{" command_seq "}"
 
@@ -147,7 +146,6 @@ def sub(x: Any, y: Any) -> Any: return x - y
 
 # Operatori Musicali (Specifici del dominio)
 def concat(x: list[MusicEvent], y: list[MusicEvent]) -> list[MusicEvent]:
-    # Qui usiamo la logica di concatenazione definita in precedenza
     return concat_music(x, y) 
 
 def harmony(x: list[MusicEvent], y: list[MusicEvent]) -> list[MusicEvent]:
@@ -164,11 +162,11 @@ def transpose_music(shift: int, sequence: list[MusicEvent]) -> list[MusicEvent]:
         transposed.append(MusicEvent(event.start_time, new_notes))
     return transposed
 
-#AST NODES
-# 1. Definiamo i tipi degli operatori
+# --- ABSTRACT SYNTAX TREE ---
+# Tipi degli operatori
 type Op = Literal["+", "-", "*", "/", "%", "==", "<", ">", "++", "|"]
 
-# 2. Definiamo i nodi dell'AST
+# Nodi dell'AST
 @dataclass
 class Number:
     value: int
@@ -197,7 +195,7 @@ class Apply:
     op: str
     args: list[Expression]
 
-@dataclass                # modo statico di trattare le variabili. Siamo passati a quello dinamico
+@dataclass               
 class Let:
     identifier: str
     value: 'Expression'
@@ -240,7 +238,7 @@ class ProcedureClosure:
 
 type Expression = Number | Bool | Var | Note | Apply | Let | FunctionApp | ProcedureApp
 
-#Nodi dell'AST per i comandi
+#Comandi
 @dataclass
 class Assign:
     name: str
@@ -275,7 +273,7 @@ type Command = Assign | Print | VarDecl | CommandSequence | IfElse | While | Fun
 
 
 
-#TRANSFORMER
+# --- TRANSFORMER ---
 #Transformer per espressioni
 def transform_expr_tree(tree: Union[Tree, Token]) -> Expression:
     if isinstance(tree, Token):
@@ -284,9 +282,7 @@ def transform_expr_tree(tree: Union[Tree, Token]) -> Expression:
         if tree.type == "IDENTIFIER": return Var(str(tree.value))
         return Var(str(tree.value))
 
-    # Ordiniamo i case per assicurarci che le note siano prese prima di var
     match tree:
-        # 1. Gestione Note e pause
         case Tree(data="note", children=c):
             p, a, o = str(c[0]), str(c[1]), int(c[2])
             d = float(c[3]) if len(c) > 3 and c[3] is not None else 1 
@@ -296,29 +292,32 @@ def transform_expr_tree(tree: Union[Tree, Token]) -> Expression:
             d = float(c[1]) if len(c) > 1 and c[1] is not None else 1
             return Rest(d)
 
-        # 2. Ground (scende ricorsivamente verso note o token)
         case Tree(data="ground", children=[child]):
             return transform_expr_tree(child)
-
-        # 3. Variabili (solo se non è una nota)
+        
         case Tree(data="var", children=[Token(value=name)]):
             return Var(name=str(name))
 
-        # ... resto dei case (bin, unary, mono, funapp, etc.) ...
         case Tree(data="mono", children=[subtree]):
             return transform_expr_tree(subtree)
+        
         case Tree(data="unary", children=[Token(value=op), operand]):
             return Apply(op=str(op), args=[transform_expr_tree(operand)])
+        
         case Tree(data="bin", children=[left, Token(value=op), right]):
             return Apply(op=str(op), args=[transform_expr_tree(left), transform_expr_tree(right)])
+        
         case Tree(data="funapp", children=[Token(value=name), args_node]):
             args = [transform_expr_tree(c) for c in args_node.children] if isinstance(args_node, Tree) else ([transform_expr_tree(args_node)] if args_node else [])
             return FunctionApp(name=str(name), args=args)
+        
         case Tree(data="procapp", children=[Token(value=name), args_node]):
             args = [transform_expr_tree(c) for c in args_node.children] if isinstance(args_node, Tree) else ([transform_expr_tree(args_node)] if args_node else [])
             return ProcedureApp(name=str(name), args=args)
+        
         case Tree(data="paren", children=[subtree]):
             return transform_expr_tree(subtree)
+        
         case _:
             raise ValueError(f"Struttura inattesa: {getattr(tree, 'data', tree)}")
 
@@ -348,7 +347,6 @@ def transform_command_tree(tree: Tree) -> Command:
             )
         
         case Tree(data="fundecl", children=[Token(value=name), param_list_tree, body_expr_tree]):
-            # Estrazione parametri (IDENTIFIER)
             if isinstance(param_list_tree, Tree):
                 params = [t.value for t in param_list_tree.children if isinstance(t, Token)]
             elif isinstance(param_list_tree, Token):
@@ -396,23 +394,20 @@ def ensure_command_seq(tree: Any) -> CommandSequence:
 #Transformer per sequenze di comandi
 def transform_command_seq_tree(tree: Tree) -> CommandSequence:
 
-    # Sicurezza: se non è un Tree, non possiamo leggere tree.data
     if not isinstance(tree, Tree):
         raise ValueError(f"Atteso un nodo Tree, ricevuto {type(tree)}")
 
     match tree:
-        # --- Caso ricorsivo per sequenze di comandi ---
+
         case Tree(data="command_seq", children=[first, rest]):
             return CommandSequence(
                 first=transform_command_tree(first),
                 rest=transform_command_seq_tree(rest)
             )
         
-        # --- Caso base per singolo comando ---
         case Tree(data="command_seq", children=[single]):
             return CommandSequence(first=transform_command_tree(single))
         
-        # --- Caso singolo comando ---
         case _ if hasattr(tree, "data") and tree.data in {
             "vardecl", "assign", "print", "ifelse", "while", "fundecl"
         }:
@@ -424,18 +419,13 @@ def transform_command_seq_tree(tree: Tree) -> CommandSequence:
 
 #PARSER
 def parse_program(program_text: str) -> CommandSequence:
-    """Trasforma una stringa di codice musicale in una sequenza di comandi (AST)"""
-    # 1. Parsing del testo tramite Lark
     parse_tree = parser.parse(program_text)
-    
-    # 2. Trasformazione dell'albero Lark nel nostro AST (CommandSequence)
     return transform_command_seq_tree(parse_tree)
 
 
-#COSTRUZIONE DELLO STATE
+# --- COSTRUZIONE DELLO STATE ---
 @dataclass
 class State:
-    # MVal è Union[int, list[MusicEvent]]
     store: Callable[[int], MVal] 
     next_loc: int
 
@@ -476,7 +466,7 @@ def access(state: State, addr: int) -> MVal:
     return state.store(addr)
 
 
-#LOCAZIONI E TIPI DI VALORE
+# --- LOCAZIONI E TIPI DI VALORE ---
 @dataclass #Dataclass per rappresentare l'indirizzo di una variabile nello stato
 class Loc:
     address: int
@@ -488,7 +478,7 @@ type DVal = EVal | Operator | Loc | Closure #Tutto ciò che può essere associat
 # Definizione della struttura di un operatore
 @dataclass
 class Operator:
-    type: tuple[list[type], type]  # (tipi_input, tipi_output)
+    type: tuple[list[type], type]  
     fn: Callable[[list[EVal]], EVal]
 
 # --- Operatori aritmetici --- 
@@ -547,7 +537,6 @@ def lnot(args):
 
 # --- Operatori Musicali ---
 def concat_op(args):
-    # Verifichiamo che entrambi gli argomenti siano effettivamente musica (liste)
     if not (isinstance(args[0], list) and isinstance(args[1], list)):
         raise ValueError("L'operatore ++ può essere usato solo tra due sequenze musicali.")
     return concat_music(args[0], args[1])
@@ -558,7 +547,6 @@ def harmony_op(args):
     return harmony_music(args[0], args[1])
 
 def transpose_op(args):
-    # args[0] sarà il numero, args[1] sarà la musica
     if not isinstance(args[0], int):
         raise ValueError(f"La trasposizione richiede un numero, ricevuto {type(args[0]).__name__}")
     if not isinstance(args[1], list):
@@ -605,7 +593,7 @@ def op_is_empty(args): #Funzione per controllare se la lista è finita
     return len(lista) == 0
 
 
-#COSTRUZIONE DELL'ENVIRONMENT
+# --- COSTRUZIONE DELL'ENVIRONMENT ---
 type Environment = Callable[[str], DVal] # Environment come Funzione
 
 def empty_environment() -> Environment:
@@ -645,7 +633,7 @@ def create_initial_env_state() -> tuple[Environment, State]:
     env = bind(env, "not", Operator(([bool], bool), lnot))
 
     # --- Operatori Musicali ---
-    env = bind(env, "++", Operator(([list, list], list), concat_op))     # Usiamo list perché le melodie sono list[MusicEvent]
+    env = bind(env, "++", Operator(([list, list], list), concat_op))     
     env = bind(env, "|", Operator(([list, list], list), harmony_op))
     env = bind(env, "!", Operator(([int, list], list), transpose_op))
     env = bind(env, "pitch", Operator(([list], int), pitch_op))
@@ -658,7 +646,7 @@ def create_initial_env_state() -> tuple[Environment, State]:
     return env, state
 
 
-#VALUTAZIONE DELLE ESPRESSIONI
+# --- VALUTAZIONE DELLE ESPRESSIONI ---
 def evaluate_expr(expr: Expression, env: Environment, state: State) -> EVal:
     match expr:
         # --- Ground Musicali ---
@@ -772,7 +760,7 @@ def evaluate_expr(expr: Expression, env: Environment, state: State) -> EVal:
             raise ValueError(f"Tipo di espressione inatteso: {expr}")
         
         
-#ESECUZIONE DEI COMANDI
+# --- ESECUZIONE DEI COMANDI ---
 def execute_command(
     cmd: Command, env: Environment, state: State
 ) -> tuple[Environment, State]:
